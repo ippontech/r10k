@@ -26,23 +26,35 @@ class Source
   # @!attribute [r] environments
   #   @return [Array<R10K::Deployment::Environment>] All environments for this source
   attr_reader :environments
+  
+  # @!attribute [r] sticky
+  #   @return [boolean]  Whether this source is in sticky mode. Sticky mode implies 
+  #                      environments will not be purged when remove from Git 
+  attr_reader :sticky
 
   def self.vivify(name, attrs)
     remote  = (attrs.delete(:remote) || attrs.delete('remote'))
     basedir = (attrs.delete(:basedir) || attrs.delete('basedir'))
+    sticky = (attrs.delete(:sticky) || attrs.delete('sticky') || false)
+
 
     raise ArgumentError, "Unrecognized attributes for #{self.name}: #{attrs.inspect}" unless attrs.empty?
-    new(name, remote, basedir)
+    new(name, remote, basedir, sticky)
   end
 
-  def initialize(name, remote, basedir)
+  def initialize(name, remote, basedir, sticky)
     @name    = name
     @remote  = remote
     @basedir = basedir
 
     @cache   = R10K::Git::Cache.new(@remote)
-
+    @sticky  = sticky
+    
     load_environments
+  end
+  
+  def sticky?
+    @sticky
   end
 
   def fetch_remote
@@ -51,6 +63,10 @@ class Source
   end
 
   include R10K::Util::Purgeable
+
+  def exists?
+    File.exist? @basedir
+  end
 
   def managed_directory
     @basedir

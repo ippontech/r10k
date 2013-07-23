@@ -106,16 +106,21 @@ module Deployment
 
     def call
       @deployment.sources.each do |source|
-        stale_envs = source.stale_contents
-
         dir = source.managed_directory
-
-        if stale_envs.empty?
-          logger.debug "No stale environments in #{dir}"
+        
+        if source.sticky?
+          logger.info "Source #{source.name} is sticky. Automatic purge disabled in #{dir}."
         else
-          logger.info "Purging stale environments from #{dir}"
-          logger.debug "Stale modules in #{dir}: #{stale_envs.join(', ')}"
-          source.purge!
+          stale_envs = source.stale_contents
+  
+  
+          if stale_envs.empty?
+            logger.debug "No stale environments in #{dir}"
+          else
+            logger.info "Purging stale environments from #{dir}"
+            logger.debug "Stale modules in #{dir}: #{stale_envs.join(', ')}"
+            source.purge!
+          end
         end
       end
     end
@@ -130,26 +135,33 @@ module Deployment
     end
 
     def call
-      @deployment.environments.each do |env|
+      @deployment.sources.each do |source|
+        sourcemeta = []
+        sourcemeta << "[absent]".on_red.yellow if !source.exists?
 
-        puts "  - #{env.dirname}"
+        puts " * #{source.name} : #{source.basedir} #{sourcemeta}"
 
-        if @puppetfile
-          puppetfile = env.puppetfile
-          puppetfile.load
+        source.environments.each do |env|
+          puts "  - #{env.dirname}"
+          if @puppetfile
+            puppetfile = env.puppetfile
+            puppetfile.load
 
-          puppetfile.modules.each do |mod|
-            meta = []
-            meta << "[outdated]".red if !mod.insync?
-            meta << "[absent]".on_red.yellow if !mod.exists?
+            puppetfile.modules.each do |mod|
+              meta = []
+              meta << "[outdated]".red if !mod.insync?
+              meta << "[absent]".on_red.yellow if !mod.exists?
 
-            puts "    - #{mod.name} (#{mod.version}) #{meta}"
+              puts "    - #{mod.name} (#{mod.version}) #{meta}"
+            end
           end
         end
+        puts ""
       end
     end
   end
 end
 end
 end
+
 
