@@ -139,7 +139,11 @@ module Deployment
           puppetfile.load
 
           puppetfile.modules.each do |mod|
-            puts "    - #{mod.name} (#{mod.version})"
+            meta = []
+            meta << "[outdated]".red if !mod.insync?
+            meta << "[absent]".on_red.yellow if !mod.exists?
+
+            puts "    - #{mod.name} (#{mod.version}) #{meta}"
           end
         end
       end

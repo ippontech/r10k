@@ -52,7 +52,23 @@ class WorkingDir < R10K::Git::Repository
     end
     reset
   end
-
+  
+  def insync?
+    if cloned?
+      @cache.sync
+      cacherev = cache.rev_parse(@ref)
+      currentrev = rev_parse('HEAD')
+      
+      return cacherev == currentrev
+    end
+    
+    return false
+  end
+  
+  def exists?
+    cloned?
+  end
+  
   # Determine if repo has been cloned into a specific dir
   #
   # @return [true, false] If the repo has already been cloned

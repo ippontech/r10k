@@ -73,6 +73,10 @@ class Forge
       SemVer::MIN
     end
   end
+  
+  def exists?
+    File.exist? metadata_path
+  end
 
   def insync?
     @version == version

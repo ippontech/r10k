@@ -15,7 +15,7 @@ class Git
   end
 
   extend Forwardable
-  def_delegator :@working_dir, :sync
+  def_delegators :@working_dir, :sync, :insync?, :exists?
 
   def initialize(name, basedir, args)
     @name, @basedir, @args = name, basedir, args
@@ -29,6 +29,7 @@ class Git
   def version
     @ref
   end
+  
 end
 end
 end
