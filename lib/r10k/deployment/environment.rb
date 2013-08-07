@@ -27,7 +27,8 @@ class Environment
   # @param [String] remote
   # @param [String] basedir
   # @param [String] dirname The directory to clone the root into, defaults to ref
-  def initialize(ref, remote, basedir, dirname = nil)
+  def initialize(source, ref, remote, basedir, dirname = nil)
+    @source  = source
     @ref     = ref
     @remote  = remote
     @basedir = basedir
@@ -48,6 +49,10 @@ class Environment
     end
   end
 
+  def source
+    @source
+  end
+  
   def sync_modules
     modules.each do |mod|
       mod.sync

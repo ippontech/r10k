@@ -31,24 +31,45 @@ class Source
   #   @return [boolean]  Whether this source is in sticky mode. Sticky mode implies 
   #                      environments will not be purged when remove from Git 
   attr_reader :sticky
+  
+  #
+  #
+  #
+  attr_reader :owner
+  
+  #
+  #
+  #
+  attr_reader :group
+  
+  #
+  #
+  #
+  attr_reader :chmod
 
   def self.vivify(name, attrs)
     remote  = (attrs.delete(:remote) || attrs.delete('remote'))
     basedir = (attrs.delete(:basedir) || attrs.delete('basedir'))
-    sticky = (attrs.delete(:sticky) || attrs.delete('sticky') || false)
-
+    sticky  = (attrs.delete(:sticky) || attrs.delete('sticky') || false)
+    owner   = (attrs.delete(:owner) || attrs.delete('owner'))
+    group   = (attrs.delete(:group) || attrs.delete('group'))
+    chmod   = (attrs.delete(:chmod) || attrs.delete('chmod'))
 
     raise ArgumentError, "Unrecognized attributes for #{self.name}: #{attrs.inspect}" unless attrs.empty?
-    new(name, remote, basedir, sticky)
+    new(name, remote, basedir, sticky, owner, group, chmod)
   end
 
-  def initialize(name, remote, basedir, sticky)
+  def initialize(name, remote, basedir, sticky, owner=nil, group=nil, chmod=nil)
     @name    = name
     @remote  = remote
     @basedir = basedir
 
     @cache   = R10K::Git::Cache.new(@remote)
+    
     @sticky  = sticky
+    @owner   = owner
+    @group   = group
+    @chmod   = chmod
     
     load_environments
   end
@@ -84,7 +105,7 @@ class Source
   def load_environments
     if @cache.cached?
       @environments = @cache.branches.map do |branch|
-        R10K::Deployment::Environment.new(branch, @remote, @basedir)
+        R10K::Deployment::Environment.new(self, branch, @remote, @basedir)
       end
     else
       @environments = []

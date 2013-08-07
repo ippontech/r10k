@@ -111,8 +111,8 @@ module Deployment
         if source.sticky?
           logger.info "Source #{source.name} is sticky. Automatic purge disabled in #{dir}."
         else
+          
           stale_envs = source.stale_contents
-  
   
           if stale_envs.empty?
             logger.debug "No stale environments in #{dir}"
@@ -137,7 +137,7 @@ module Deployment
     def call
       @deployment.sources.each do |source|
         sourcemeta = []
-	sourcemeta << "[sticky]".blue if source.sticky?
+        sourcemeta << "[sticky]".blue if source.sticky?
         sourcemeta << "[absent]".on_red.yellow if !source.exists?
 
         puts " * #{source.name} : #{source.basedir} #{sourcemeta}"
