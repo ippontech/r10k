@@ -137,6 +137,7 @@ module Deployment
     def call
       @deployment.sources.each do |source|
         sourcemeta = []
+	sourcemeta << "[sticky]".blue if source.sticky?
         sourcemeta << "[absent]".on_red.yellow if !source.exists?
 
         puts " * #{source.name} : #{source.basedir} #{sourcemeta}"
